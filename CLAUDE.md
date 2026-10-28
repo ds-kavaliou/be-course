@@ -49,4 +49,5 @@ docker compose up -d  # локальная инфраструктура
 ## MCP
 
 - `context7` (`.mcp.json`) — актуальная документация библиотек; для Drizzle явно указывать версию 0.45.
-- Postgres MCP (read-only) будет добавлен вместе с docker-compose.
+- `postgres` — Google MCP Toolbox (`--prebuilt=postgres`) под ролью `mcp_readonly`: схема, данные, `EXPLAIN`.
+  Требует `docker compose up -d`. Запись запрещена правами роли в БД, а не самим MCP-сервером.

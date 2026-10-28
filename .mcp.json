@@ -3,6 +3,17 @@
     "context7": {
       "type": "http",
       "url": "https://mcp.context7.com/mcp"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@toolbox-sdk/server@1.15.0", "--prebuilt=postgres", "--stdio"],
+      "env": {
+        "POSTGRES_HOST": "127.0.0.1",
+        "POSTGRES_PORT": "${POSTGRES_PORT:-5432}",
+        "POSTGRES_DATABASE": "${POSTGRES_DB:-app}",
+        "POSTGRES_USER": "${POSTGRES_READONLY_USER:-mcp_readonly}",
+        "POSTGRES_PASSWORD": "${POSTGRES_READONLY_PASSWORD:-readonly}"
+      }
     }
   }
 }
