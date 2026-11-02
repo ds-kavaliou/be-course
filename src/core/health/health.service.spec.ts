@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckService } from '@nestjs/terminus';
 
+import { DatabaseHealthIndicator } from './database.health';
 import { HealthService } from './health.service';
 
 describe('HealthService', () => {
   let service: HealthService;
   const healthCheckService = { check: jest.fn() };
+  const databaseHealthIndicator = { isHealthy: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -14,6 +16,7 @@ describe('HealthService', () => {
       providers: [
         HealthService,
         { provide: HealthCheckService, useValue: healthCheckService },
+        { provide: DatabaseHealthIndicator, useValue: databaseHealthIndicator },
       ],
     }).compile();
 
@@ -28,11 +31,16 @@ describe('HealthService', () => {
     expect(service.getEmptyResponse()).toEqual({ status: 'ok', details: {} });
   });
 
-  it('delegates checks to HealthCheckService', async () => {
+  it('runs the database check through HealthCheckService', async () => {
     const result = { status: 'ok', details: {} };
-    healthCheckService.check.mockResolvedValue(result);
+    healthCheckService.check.mockImplementation(
+      async (indicators: Array<() => Promise<unknown>>) => {
+        await Promise.all(indicators.map((indicator) => indicator()));
+        return result;
+      },
+    );
 
     await expect(service.checkHealth()).resolves.toBe(result);
-    expect(healthCheckService.check).toHaveBeenCalledWith([]);
+    expect(databaseHealthIndicator.isHealthy).toHaveBeenCalledWith('database');
   });
 });

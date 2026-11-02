@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Jest runs CommonJS: ESM-only dependencies (e.g. @nestjs/drizzle) are transpiled by ts-jest
+    "allowJs": true,
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "resolvePackageJsonExports": false
+  }
+}

@@ -19,33 +19,23 @@ npm run test:e2e     # E2E tests
 src/
 ├── core/
 │   ├── config/      # App configuration (env variables)
-│   ├── database/    # TypeORM + PostgreSQL connection
+│   ├── database/    # Drizzle + PostgreSQL connection
 │   ├── health/      # Health check endpoints
 │   └── app/         # Root module
-├── database/        # TypeORM CLI data-source and migrations
+├── database/        # SQL migrations
 ├── modules/         # Feature modules
 └── main.ts          # Entry point
 ```
 
 ## Database
 
-PostgreSQL and TypeORM are already wired in. Use them for new modules — no extra setup.
+PostgreSQL is accessed through [Drizzle ORM](https://orm.drizzle.team) (`drizzle-orm` 0.45, node-postgres driver) and the official `@nestjs/drizzle` module.
 
 - **Local Postgres:** `docker compose up -d` (image and credentials from `.env` / `.env.example`)
-- **Connection:** `DatabaseModule` (`src/core/database`) is imported in `AppModule`
-- **Entities:** any `*.entity.ts` under `src/` is auto-loaded
-- **Repositories:** `TypeOrmModule.forFeature([YourEntity])` in a feature module, then `@InjectRepository(YourEntity)`
-- **Transactions:** `@Transactional()` from `typeorm-transactional` (context is initialized in `main.ts`)
-- **Schema:** migrations in `src/database/migrations/`. `POSTGRES_SYNCHRONIZE` is `false` by default — do not rely on auto-sync
-
-```bash
-npm run migration:generate   # Generate from entity changes
-npm run migration:run        # Apply pending migrations
-npm run migration:revert     # Roll back the last migration
-npm run migration:show       # List applied / pending
-```
-
-CLI uses `src/database/data-source.ts`. At runtime, Nest uses the DataSource from `DatabaseModule`. If `POSTGRES_MIGRATIONS_RUN=true`, pending migrations also run on app start.
+- **Connection:** `DatabaseModule` (`src/core/database`) registers one pool for the whole app; it is closed on shutdown
+- **Usage:** inject the database with `@InjectDrizzle() private readonly db: Database` (`Database` from `@/core/database/database.types`)
+- **Health:** `GET /health` runs `select 1` when `HEALTH_CHECK_ENABLED=true` and answers **503** if the database is unavailable
+- **Schema and migrations:** coming next (drizzle-kit, SQL migrations in `src/database/migrations/`)
 
 ## Libraries
 
@@ -53,7 +43,7 @@ CLI uses `src/database/data-source.ts`. At runtime, Nest uses the DataSource fro
 |---------------|--------------------------|
 | HTTP          | Fastify (`@nestjs/platform-fastify`) |
 | Validation    | Joi                      |
-| ORM           | TypeORM (`@nestjs/typeorm`) |
+| ORM           | Drizzle (`drizzle-orm`, `@nestjs/drizzle`) |
 | Database      | PostgreSQL (`pg`)        |
 
 ## Core Modules

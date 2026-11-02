@@ -30,7 +30,6 @@ export const configValidationSchema = Joi.object<Config>({
   POSTGRES_USER: Joi.string().required(),
   POSTGRES_PASSWORD: Joi.string().required(),
   POSTGRES_DB: Joi.string().required(),
-  POSTGRES_SYNCHRONIZE: Joi.boolean().optional().default(false),
   POSTGRES_LOGGING: Joi.boolean().optional().default(false),
   POSTGRES_MIGRATIONS_RUN: Joi.boolean().optional().default(false),
 });

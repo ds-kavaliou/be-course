@@ -1,46 +1,34 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { addTransactionalDataSource, deleteDataSourceByName } from 'typeorm-transactional';
+import { DrizzleModule } from '@nestjs/drizzle';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { ConfigModule } from '@/core/config/config.module';
 import { ConfigService } from '@/core/config/config.service';
 
+/**
+ * Registers the Drizzle database (node-postgres pool) for the whole application.
+ * Inject it with `@InjectDrizzle()`; the pool is closed on application shutdown.
+ */
 @Module({
   imports: [
-    TypeOrmModule.forRootAsync({
+    DrizzleModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-
-        host: config.get('POSTGRES_HOST'),
-        port: Number(config.get('POSTGRES_PORT')),
-        username: config.get('POSTGRES_USER'),
-        password: config.get('POSTGRES_PASSWORD'),
-        database: config.get('POSTGRES_DB'),
-
-        entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
-        autoLoadEntities: true,
-
-        migrationsTableName: 'migrations',
-        migrations: [__dirname + '/../../database/migrations/*.migration{.ts,.js}'],
-        migrationsRun: String(config.get('POSTGRES_MIGRATIONS_RUN')) === 'true',
-
-        synchronize: String(config.get('POSTGRES_SYNCHRONIZE')) === 'true',
-        logging: String(config.get('POSTGRES_LOGGING')) === 'true',
+        drizzle,
+        connection: {
+          host: config.get('POSTGRES_HOST'),
+          port: Number(config.get('POSTGRES_PORT')),
+          user: config.get('POSTGRES_USER'),
+          password: config.get('POSTGRES_PASSWORD'),
+          database: config.get('POSTGRES_DB'),
+          // Fail fast instead of waiting forever when the database is unreachable
+          connectionTimeoutMillis: 5000,
+        },
+        casing: 'snake_case' as const,
+        logger: String(config.get('POSTGRES_LOGGING')) === 'true',
       }),
-      async dataSourceFactory(options) {
-        if (!options) {
-          throw new Error('Invalid options passed');
-        }
-
-        deleteDataSourceByName('default');
-
-        return addTransactionalDataSource(new DataSource(options));
-      },
     }),
   ],
-  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}

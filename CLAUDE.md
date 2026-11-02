@@ -20,8 +20,11 @@
 
 - Node.js **24.20.0** (`.nvmrc`), NestJS 11, HTTP-ядро **Fastify** (не Express): плагины через `app.register(...)`,
   типы `FastifyRequest`/`FastifyReply`; пакеты, работающие только с Express, не подходят.
-- PostgreSQL 18. ORM — **Drizzle 0.45.x** + `@nestjs/drizzle` (переход с TypeORM из boilerplate запланирован).
+- PostgreSQL 18. ORM — **Drizzle 0.45.x** + `@nestjs/drizzle` (TypeORM из boilerplate удалён).
   Документация NestJS по Drizzle написана под v1 RC — связи писать в стиле v0 (`relations()`).
+  БД внедряется через `@InjectDrizzle()`, тип — `Database` из `@/core/database/database.types`.
+- `@nestjs/drizzle` — ESM-only: в Node 24 работает через `require(esm)`, в Jest — транспиляцией через `tsconfig.spec.json`
+  и `transformIgnorePatterns`. Новые ESM-only пакеты добавлять туда же.
 - Схема БД меняется только миграциями; `synchronize` не используется.
 - Конфигурация — `src/core/config` (Joi-схема, fail-fast при старте); новые переменные добавлять в схему, `config.types.ts` и `.env.example`.
 - Фоновые задачи — на таблицах Postgres (без Redis/брокеров, требование урока 1.6).
